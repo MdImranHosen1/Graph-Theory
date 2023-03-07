@@ -41,27 +41,23 @@ const int inf = (int) 2e9 + 5;
 const ll  Inf = (ll) 2e18 + 5;
 const int N   = (int) 2e5 + 5;
 
-std::vector<pii> g[N];
+std::vector<int> g[N];
 int dis[N], par[N], vis[N];
 
-void dijkstra(int u, int n) {
-	for (int i = 1; i <= n; i++) {
-		dis[i] = inf;
-	}
+void bfs(int u) {
+	queue<int> q;
+	q.push(u);
 	dis[u] = 0;
-	priority_queue<pii> pq;
-	pq.push({0, u});
-	while (!pq.empty()) {
-		u = pq.top().ss;
-		pq.pop();
-		if (vis[u]) continue;
-		vis[u] = 1;
-		for (auto x : g[u]) {
-			int v = x.ff, w = x.ss;
-			if (dis[v] > dis[u] + w) {
-				dis[v] = dis[u] + w;
+	vis[u] = 1;
+	while (!q.empty()) {
+		u = q.front();
+		q.pop();
+		for (int v : g[u]) {
+			if (!vis[v]) {
+				vis[v] = 1;
 				par[v] = u;
-				if (!vis[v]) pq.push({ -dis[v], v});
+				dis[v] = dis[u] + 1;
+				q.push(v);
 			}
 		}
 	}
@@ -75,11 +71,11 @@ void path(int u) {
 int solve() {
 	int n, m; Int(n, m);
 	for (int i = 1; i <= m; i++) {
-		int u, v, w; Int(u, v, w);
-		g[u].push_back({v, w});
-		g[v].push_back({u, w});
+		int u, v; Int(u, v);
+		g[u].push_back(v);
+		g[v].push_back(u);
 	}
-	dijkstra(1, n);
+	bfs(1);
 	printf("%d\n", dis[n]);
 	path(n);
 	printf("\n");

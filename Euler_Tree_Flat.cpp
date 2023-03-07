@@ -41,48 +41,55 @@ const int inf = (int) 2e9 + 5;
 const ll  Inf = (ll) 2e18 + 5;
 const int N   = (int) 2e5 + 5;
 
-std::vector<pii> g[N];
-int dis[N], par[N], vis[N];
+std::vector<int> g[N];
+int st[N], et[N], t;
 
-void dijkstra(int u, int n) {
-	for (int i = 1; i <= n; i++) {
-		dis[i] = inf;
+void dfs(int u, int p = -1) {
+	st[u] = ++t;
+	for (int v : g[u]) {
+		if (p != v) dfs(v, u);
 	}
-	dis[u] = 0;
-	priority_queue<pii> pq;
-	pq.push({0, u});
-	while (!pq.empty()) {
-		u = pq.top().ss;
-		pq.pop();
-		if (vis[u]) continue;
-		vis[u] = 1;
-		for (auto x : g[u]) {
-			int v = x.ff, w = x.ss;
-			if (dis[v] > dis[u] + w) {
-				dis[v] = dis[u] + w;
-				par[v] = u;
-				if (!vis[v]) pq.push({ -dis[v], v});
-			}
+	st[u] = t;
+}
+
+int bit[N];
+
+void update(int x, int val) {
+	while (x < N) {
+		bit[x] += val;
+		x += (x & -x);
+	}
+}
+
+int query(int x) {
+	int ans = 0;
+	while (x > 0) {
+		ans += bit[x];
+		x -= (x & -x);
+	}
+	return ans;
+}
+int solve() {
+	int n; Int(n);
+	for (int i = 1; i < n; i++) {
+		int u, v; Int(u, v);
+		g[u].push_back(v);
+		g[v].push_back(u);
+	}
+	dfs(1);
+	int q; Int(q);
+	while (q--) {
+		int ck; Int(ck);
+		if (ck == 1) {
+			int u, val; Int(u, val);
+			update(st[u], val);
+			update(et[u] + 1, -val);
+		}
+		else {
+			int u; Int(u);
+			printf("%d\n", query(st[u]));
 		}
 	}
-}
-
-void path(int u) {
-	if (par[u]) path(par[u]);
-	printf("%d ", u);
-}
-
-int solve() {
-	int n, m; Int(n, m);
-	for (int i = 1; i <= m; i++) {
-		int u, v, w; Int(u, v, w);
-		g[u].push_back({v, w});
-		g[v].push_back({u, w});
-	}
-	dijkstra(1, n);
-	printf("%d\n", dis[n]);
-	path(n);
-	printf("\n");
 	return 0;
 }
 

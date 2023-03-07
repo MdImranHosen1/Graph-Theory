@@ -40,49 +40,53 @@ inline int mul(int a, int b) {return (ll) a * b % mod;}
 const int inf = (int) 2e9 + 5;
 const ll  Inf = (ll) 2e18 + 5;
 const int N   = (int) 2e5 + 5;
+const int Log = (int) 18;
 
-std::vector<pii> g[N];
-int dis[N], par[N], vis[N];
+std::vector<int> g[N];
+int par[Log][N], dep[N];
 
-void dijkstra(int u, int n) {
-	for (int i = 1; i <= n; i++) {
-		dis[i] = inf;
+void lca_build(int u, int p = -1, int d = 0) {
+	dep[u] = d;
+	for (int i = 1; i < Log; i++) {
+		par[i][u] = par[i - 1][par[i - 1][u]];
 	}
-	dis[u] = 0;
-	priority_queue<pii> pq;
-	pq.push({0, u});
-	while (!pq.empty()) {
-		u = pq.top().ss;
-		pq.pop();
-		if (vis[u]) continue;
-		vis[u] = 1;
-		for (auto x : g[u]) {
-			int v = x.ff, w = x.ss;
-			if (dis[v] > dis[u] + w) {
-				dis[v] = dis[u] + w;
-				par[v] = u;
-				if (!vis[v]) pq.push({ -dis[v], v});
-			}
-		}
+	for (int v : g[u]) {
+		if (p == v) continue;
+		par[0][v] = u;
+		lca_build(v, u, d + 1);
 	}
 }
 
-void path(int u) {
-	if (par[u]) path(par[u]);
-	printf("%d ", u);
+int lca(int u, int v) {
+	if (dep[u] < dep[v]) swap(u, v);
+	for (int i = Log - 1; i >= 0; i--) {
+		if (dep[par[i][u]] >= dep[v]) u = par[i][u];
+	}
+	if (u == v) return u;
+	for (int i = Log - 1; i >= 0; i--) {
+		if (par[i][u] != par[i][v]) u = par[i][u], v = par[i][v];
+	}
+	return par[0][u];
+}
+
+int dis(int u, int v) {
+	int l = lca(u, v);
+	return dep[u] + dep[v] - 2 * dep[l];
 }
 
 int solve() {
-	int n, m; Int(n, m);
-	for (int i = 1; i <= m; i++) {
-		int u, v, w; Int(u, v, w);
-		g[u].push_back({v, w});
-		g[v].push_back({u, w});
+	int n, q; Int(n, q);
+	for (int i = 1; i < n; i++) {
+		int u, v; Int(u, v);
+		g[u].push_back(v);
+		g[v].push_back(u);
 	}
-	dijkstra(1, n);
-	printf("%d\n", dis[n]);
-	path(n);
-	printf("\n");
+	par[0][1] = 1;
+	lca_build(1);
+	while (q--) {
+		int u, v; Int(u, v);
+		printf("%d\n", dis(u, v));
+	}
 	return 0;
 }
 

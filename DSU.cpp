@@ -41,48 +41,38 @@ const int inf = (int) 2e9 + 5;
 const ll  Inf = (ll) 2e18 + 5;
 const int N   = (int) 2e5 + 5;
 
-std::vector<pii> g[N];
-int dis[N], par[N], vis[N];
+int par[N], sz[N];
 
-void dijkstra(int u, int n) {
+void init(int n) {
 	for (int i = 1; i <= n; i++) {
-		dis[i] = inf;
-	}
-	dis[u] = 0;
-	priority_queue<pii> pq;
-	pq.push({0, u});
-	while (!pq.empty()) {
-		u = pq.top().ss;
-		pq.pop();
-		if (vis[u]) continue;
-		vis[u] = 1;
-		for (auto x : g[u]) {
-			int v = x.ff, w = x.ss;
-			if (dis[v] > dis[u] + w) {
-				dis[v] = dis[u] + w;
-				par[v] = u;
-				if (!vis[v]) pq.push({ -dis[v], v});
-			}
-		}
+		par[i] = i, sz[i] = 1;
 	}
 }
 
-void path(int u) {
-	if (par[u]) path(par[u]);
-	printf("%d ", u);
+int Find(int u) {
+	return par[u] == u ? u : par[u] = Find(par[u]);
+}
+
+void Union(int u, int v) {
+	u = Find(u), v = Find(v);
+	if (u == v) return;
+	if (sz[u] < sz[v]) swap(u, v);
+	par[v] = u;
+	sz[u] += sz[v];
 }
 
 int solve() {
 	int n, m; Int(n, m);
+	init(n);
 	for (int i = 1; i <= m; i++) {
-		int u, v, w; Int(u, v, w);
-		g[u].push_back({v, w});
-		g[v].push_back({u, w});
+		int u, v; Int(u, v);
+		Union(u, v);
 	}
-	dijkstra(1, n);
-	printf("%d\n", dis[n]);
-	path(n);
-	printf("\n");
+	set<int> root;
+	for (int i = 1; i <= n; i++) {
+		root.insert(Find(i));
+	}
+	printf("%d\n", sz(root));
 	return 0;
 }
 

@@ -40,49 +40,74 @@ inline int mul(int a, int b) {return (ll) a * b % mod;}
 const int inf = (int) 2e9 + 5;
 const ll  Inf = (ll) 2e18 + 5;
 const int N   = (int) 2e5 + 5;
+const int M = (int) 505;
 
-std::vector<pii> g[N];
-int dis[N], par[N], vis[N];
+std::vector<int> g[N];
+int dis[M], vis[N], sz[N], nd;
+int n, k;
+ll ans = 0;
 
-void dijkstra(int u, int n) {
-	for (int i = 1; i <= n; i++) {
-		dis[i] = inf;
-	}
-	dis[u] = 0;
-	priority_queue<pii> pq;
-	pq.push({0, u});
-	while (!pq.empty()) {
-		u = pq.top().ss;
-		pq.pop();
-		if (vis[u]) continue;
-		vis[u] = 1;
-		for (auto x : g[u]) {
-			int v = x.ff, w = x.ss;
-			if (dis[v] > dis[u] + w) {
-				dis[v] = dis[u] + w;
-				par[v] = u;
-				if (!vis[v]) pq.push({ -dis[v], v});
-			}
+void getsz(int u, int p = -1) {
+	sz[u] = 1;
+	++nd;
+	for (int v : g[u]) {
+		if (p != v and !vis[v]) {
+			getsz(v, u);
+			sz[u] += sz[v];
 		}
 	}
 }
 
-void path(int u) {
-	if (par[u]) path(par[u]);
-	printf("%d ", u);
+int centroid(int u, int p = -1) {
+	for (int v : g[u]) {
+		if (p != v and !vis[v] and sz[v] > nd / 2) return centroid(v, u);
+	}
+	return u;
+}
+
+void upd_res(int u, int p, int d) {
+	if (d > k) return;
+	ans += dis[k - d];
+	for (int v : g[u]) {
+		if (p != v and !vis[v]) upd_res(v, u, d + 1);
+	}
+}
+
+void upd_dis(int u, int p, int d) {
+	if (d > k) return;
+	dis[d]++;
+	for (int v : g[u]) {
+		if (p != v and !vis[v]) upd_dis(v, u, d + 1);
+	}
+}
+
+void decompose(int u) {
+	nd = 0;
+	memset(dis, 0, sizeof(dis));
+	dis[0]++;
+	getsz(u);
+	int center = centroid(u);
+	vis[center] = 1;
+	for (int v : g[center]) {
+		if (!vis[v]) {
+			upd_res(v, center, 1);
+			upd_dis(v, center, 1);
+		}
+	}
+	for (int v : g[center]) {
+		if (!vis[v]) decompose(v);
+	}
 }
 
 int solve() {
-	int n, m; Int(n, m);
-	for (int i = 1; i <= m; i++) {
-		int u, v, w; Int(u, v, w);
-		g[u].push_back({v, w});
-		g[v].push_back({u, w});
+	Int(n, k);
+	for (int i = 1; i < n; i++) {
+		int u, v ; Int(u, v);
+		g[u].push_back(v);
+		g[v].push_back(u);
 	}
-	dijkstra(1, n);
-	printf("%d\n", dis[n]);
-	path(n);
-	printf("\n");
+	decompose(1);
+	printf("%lld\n", ans);
 	return 0;
 }
 
